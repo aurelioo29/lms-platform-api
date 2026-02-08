@@ -1,0 +1,53 @@
+name: Deploy Laravel API (VPS)
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH deploy to VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+
+            cd /var/www/api-lms
+
+            echo "== Pull latest code =="
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "== Install deps =="
+            composer install --no-dev --prefer-dist --optimize-autoloader
+
+            echo "== Laravel clear cache =="
+            php artisan config:clear
+            php artisan cache:clear
+            php artisan route:clear
+            php artisan view:clear
+
+            echo "== Migrate =="
+            php artisan migrate --force
+
+            echo "== Cache again =="
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "== Fix permissions =="
+            sudo chown -R deploy:www-data /var/www/api-lms
+            sudo chmod -R 775 /var/www/api-lms/storage /var/www/api-lms/bootstrap/cache
+
+            echo "== Restart services =="
+            sudo systemctl restart php8.4-fpm
+            sudo systemctl reload nginx
+
+            echo "== DONE =="
