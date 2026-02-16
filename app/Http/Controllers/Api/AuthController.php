@@ -23,7 +23,6 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        // ✅ akan pakai CustomVerifyEmail kalau sudah override di User model
         $user->sendEmailVerificationNotification();
 
         return response()->json([
@@ -50,6 +49,8 @@ class AuthController extends Controller
 
         Auth::guard('web')->login($user);
 
+        $request->session()->regenerate();
+
         return response()->json([
             'message' => 'Login berhasil.',
             'user' => [
@@ -57,20 +58,30 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'avatar' => $user->avatar,
             ],
         ]);
     }
 
     public function me(Request $request)
     {
+        $user = $request->user();
+
         return response()->json([
-            'user' => $request->user(),
+            'user' => $user ? [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'avatar' => $user->avatar,
+            ] : null,
         ]);
     }
 
     public function logout(Request $request)
     {
         Auth::guard('web')->logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
