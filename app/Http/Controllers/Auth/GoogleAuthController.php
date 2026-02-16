@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Auth;
 
 class GoogleAuthController extends Controller
 {
@@ -19,40 +20,35 @@ class GoogleAuthController extends Controller
 
     public function callback()
     {
-        $googleUser = Socialite::driver('google')
-            ->stateless()
-            ->user();
-
-        // cari user berdasarkan email (paling aman buat linking)
+        $googleUser = Socialite::driver('google')->stateless()->user();
         $user = User::where('email', $googleUser->getEmail())->first();
 
         if (!$user) {
             $user = User::create([
-                'name' => $googleUser->getName() ?? $googleUser->getNickname() ?? 'Google User',
+                'name' => $googleUser->getName() ?? 'Google User',
                 'email' => $googleUser->getEmail(),
-                'password' => bcrypt(Str::random(32)), // random karena login via google
+                'password' => bcrypt(Str::random(32)),
+                // kalau kamu butuh role default:
+                'role' => 'student',
+                // penting kalau sistem kamu minta verified:
+                'email_verified_at' => now(),
             ]);
         }
 
-        // simpan google_id + avatar untuk referensi
         $user->update([
             'google_id' => $googleUser->getId(),
             'avatar' => $googleUser->getAvatar(),
+            // kalau user lama belum verified, beresin:
+            'email_verified_at' => $user->email_verified_at ?? now(),
         ]);
 
-        // === OPSI A: kalau kamu pakai Laravel Sanctum (API token) ===
-        // Pastikan Sanctum sudah terpasang, lalu:
-        $token = $user->createToken('google-auth')->plainTextToken;
+        // ✅ INI KUNCINYA:
+        Auth::guard('web')->login($user);
+        request()->session()->regenerate();
 
-        // Kamu bisa redirect ke frontend sambil bawa token
         $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
 
-        return redirect()->away($frontendUrl . '/auth/callback?token=' . urlencode($token));
-
-        // === OPSI B: kalau mau JSON langsung ===
-        // return response()->json([
-        //     'token' => $token,
-        //     'user' => $user,
-        // ]);
+        // sekarang frontend tinggal lempar ke dashboard, TANPA token
+        return redirect()->away($frontendUrl . '/dashboard');
     }
 }
