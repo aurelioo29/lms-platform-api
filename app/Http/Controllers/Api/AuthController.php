@@ -73,7 +73,9 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'google_id' => $user->google_id,
                 'avatar' => $user->avatar,
+                'username_changed_at' => $user->username_changed_at,
             ] : null,
         ]);
     }

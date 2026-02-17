@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\PasswordController;
+use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -31,4 +32,11 @@ Route::prefix('auth')->group(function () {
     // password reset
     Route::post('/forgot-password', [PasswordController::class, 'forgot']);
     Route::post('/reset-password', [PasswordController::class, 'reset']);
+
+    // profile management
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
+    Route::delete('/avatar', [ProfileController::class, 'removeAvatar']);
+    Route::patch('/profile/username', [ProfileController::class, 'updateUsername']);
+    Route::patch('/profile/email', [ProfileController::class, 'updateEmail']);
+    Route::patch('/profile/password', [ProfileController::class, 'updatePassword']);
 });
