@@ -35,7 +35,7 @@ Route::prefix('auth')->group(function () {
 
     // profile management
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
-    Route::delete('/avatar', [ProfileController::class, 'removeAvatar']);
+    Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar']);
     Route::patch('/profile/username', [ProfileController::class, 'updateUsername']);
     Route::patch('/profile/email', [ProfileController::class, 'updateEmail']);
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword']);
