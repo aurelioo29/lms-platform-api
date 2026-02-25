@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\Dev\ActivityLogController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\PasswordController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\Lms\CourseController;
+use App\Http\Controllers\Api\Lms\CourseEnrollmentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +50,29 @@ Route::middleware(['auth:sanctum', 'dev.only'])
     ->group(function () {
         Route::get('/activity-logs', [ActivityLogController::class, 'index']);
         Route::get('/activity-logs/{id}', [ActivityLogController::class, 'show']);
+    });
+
+/*
+|--------------------------------------------------------------------------
+| LMS - COURSE ENROLLMENT
+|--------------------------------------------------------------------------
+*/
+Route::prefix('courses')
+    ->middleware(['auth:sanctum', 'verified'])
+    ->group(function () {
+
+        // student enroll via enroll key
+        Route::post('/{course}/enroll', [CourseEnrollmentController::class, 'enrollWithKey']);
+
+        // admin / teacher manual enroll student
+        Route::post('/{course}/manual-enroll', [CourseEnrollmentController::class, 'manualEnroll']);
+
+        // course management (admin)
+        Route::get('/', [CourseController::class, 'index']);
+        Route::post('/', [CourseController::class, 'store']);
+        Route::patch('/{course}', [CourseController::class, 'update']);
+        Route::post('/{course}/publish', [CourseController::class, 'publish']);
+        Route::post('/{course}/archive', [CourseController::class, 'archive']);
     });
 
 Route::middleware(['auth:sanctum', 'admin.dev'])
