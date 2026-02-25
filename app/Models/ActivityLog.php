@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ActivityLog extends Model
 {
     public $timestamps = false; // created_at only (useCurrent)
+
     protected $table = 'activity_logs';
 
     protected $fillable = [
@@ -23,4 +24,9 @@ class ActivityLog extends Model
         'meta_json' => 'array',
         'created_at' => 'datetime',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

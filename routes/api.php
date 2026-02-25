@@ -1,12 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\UserManagementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Dev\ActivityLogController;
 use App\Http\Controllers\Api\EmailVerificationController;
-use App\Http\Controllers\Api\Lms\CourseController;
-use App\Http\Controllers\Api\Lms\CourseEnrollmentController;
 use App\Http\Controllers\Api\PasswordController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\Lms\CourseController;
+use App\Http\Controllers\Api\Lms\CourseEnrollmentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,7 +21,6 @@ Route::get('/ping', function () {
         'time' => now()->toDateTimeString(),
     ]);
 });
-
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -45,6 +45,13 @@ Route::prefix('auth')->group(function () {
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword']);
 });
 
+Route::middleware(['auth:sanctum', 'dev.only'])
+    ->prefix('dev')
+    ->group(function () {
+        Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+        Route::get('/activity-logs/{id}', [ActivityLogController::class, 'show']);
+    });
+
 /*
 |--------------------------------------------------------------------------
 | LMS - COURSE ENROLLMENT
@@ -68,11 +75,21 @@ Route::prefix('courses')
         Route::post('/{course}/archive', [CourseController::class, 'archive']);
     });
 
-
-// ✅ Developer-only area
-Route::prefix('dev')
-    ->middleware(['auth:sanctum', 'dev.only'])
+Route::middleware(['auth:sanctum', 'admin.dev'])
+    ->prefix('admin')
     ->group(function () {
-        Route::get('/activity-logs', [ActivityLogController::class, 'index']);
-        Route::get('/activity-logs/{id}', [ActivityLogController::class, 'show']);
+
+        // Teachers
+        Route::get('/teachers', [UserManagementController::class, 'indexTeachers']);
+        Route::post('/teachers', [UserManagementController::class, 'storeTeacher']);
+        Route::get('/teachers/{user}', [UserManagementController::class, 'showTeacher']);
+        Route::patch('/teachers/{user}', [UserManagementController::class, 'updateTeacher']);
+        Route::delete('/teachers/{user}', [UserManagementController::class, 'destroyTeacher']);
+
+        // Students
+        Route::get('/students', [UserManagementController::class, 'indexStudents']);
+        Route::post('/students', [UserManagementController::class, 'storeStudent']);
+        Route::get('/students/{user}', [UserManagementController::class, 'showStudent']);
+        Route::patch('/students/{user}', [UserManagementController::class, 'updateStudent']);
+        Route::delete('/students/{user}', [UserManagementController::class, 'destroyStudent']);
     });

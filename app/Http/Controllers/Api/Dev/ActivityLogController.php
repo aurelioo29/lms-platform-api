@@ -8,14 +8,18 @@ use Illuminate\Http\Request;
 
 class ActivityLogController extends Controller
 {
-    /**
-     * GET /api/dev/activity-logs
-     * Filters: course_id, user_id, event_type, ref_type, ref_id, date_from, date_to
-     * Pagination: per_page
-     */
     public function index(Request $request)
     {
-        $q = ActivityLog::query()->latest('created_at');
+        $sort = $request->get('sort', 'id');
+        $dir = strtolower($request->get('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        if (! in_array($sort, ['id', 'created_at'], true)) {
+            $sort = 'id';
+        }
+
+        $q = ActivityLog::query()
+            ->with(['user:id,name']) // ✅ load user name
+            ->orderBy($sort, $dir);
 
         if ($request->filled('course_id')) {
             $q->where('course_id', $request->integer('course_id'));
@@ -26,15 +30,7 @@ class ActivityLogController extends Controller
         }
 
         if ($request->filled('event_type')) {
-            $q->where('event_type', $request->string('event_type'));
-        }
-
-        if ($request->filled('ref_type')) {
-            $q->where('ref_type', $request->string('ref_type'));
-        }
-
-        if ($request->filled('ref_id')) {
-            $q->where('ref_id', $request->integer('ref_id'));
+            $q->where('event_type', (string) $request->string('event_type'));
         }
 
         if ($request->filled('date_from')) {
@@ -42,23 +38,51 @@ class ActivityLogController extends Controller
         }
 
         if ($request->filled('date_to')) {
-            // include end-of-day
             $q->where('created_at', '<=', $request->date('date_to')->endOfDay());
         }
 
         $perPage = min(max((int) $request->get('per_page', 50), 1), 200);
 
+        $paginator = $q->paginate($perPage);
+
+        // ✅ transform the SAME paginator (no re-paginate)
+        $paginator->getCollection()->transform(function ($log) {
+            return [
+                'id' => $log->id,
+                'user_id' => $log->user_id,
+                'user_name' => $log->user?->name, // ✅ now available
+                'course_id' => $log->course_id,
+                'event_type' => $log->event_type,
+                'meta_json' => $log->meta_json,
+                'created_at' => $log->created_at?->toISOString(), // keep UTC
+                'created_at_wib' => $log->created_at
+                    ? $log->created_at->timezone('Asia/Jakarta')->format('Y-m-d H:i:s')
+                    : null,
+            ];
+        });
+
         return response()->json([
-            'data' => $q->paginate($perPage),
+            'data' => $paginator,
         ]);
     }
 
     public function show($id)
     {
-        $log = ActivityLog::findOrFail($id);
+        $log = ActivityLog::with(['user:id,name'])->findOrFail($id);
 
         return response()->json([
-            'data' => $log,
+            'data' => [
+                'id' => $log->id,
+                'user_id' => $log->user_id,
+                'user_name' => $log->user?->name,
+                'course_id' => $log->course_id,
+                'event_type' => $log->event_type,
+                'meta_json' => $log->meta_json,
+                'created_at' => $log->created_at?->toISOString(),
+                'created_at_wib' => $log->created_at
+                    ? $log->created_at->timezone('Asia/Jakarta')->format('Y-m-d H:i:s')
+                    : null,
+            ],
         ]);
     }
 }
