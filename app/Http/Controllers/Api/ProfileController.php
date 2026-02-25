@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Profile\UploadAvatarRequest;
 use App\Http\Requests\Profile\UpdateEmailRequest;
 use App\Http\Requests\Profile\UpdatePasswordRequest;
 use App\Http\Requests\Profile\UpdateUsernameRequest;
+use App\Http\Requests\Profile\UploadAvatarRequest;
+use App\Services\ActivityLogger;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
-use App\Services\ActivityLogger;
+
 class ProfileController extends Controller
 {
     // POST /api/auth/profile/avatar
@@ -119,7 +120,7 @@ class ProfileController extends Controller
 
         $data = $request->validated();
 
-        if (!Hash::check($data['current_password'], $user->password)) {
+        if (! Hash::check($data['current_password'], $user->password)) {
             return response()->json([
                 'message' => 'Current password is incorrect.',
                 'errors' => ['current_password' => ['Current password is incorrect.']],
@@ -150,7 +151,9 @@ class ProfileController extends Controller
     private function deleteAvatarFileIfExists(string $path): void
     {
         // guard: if stored as URL, don't delete
-        if (Str::startsWith($path, ['http://', 'https://'])) return;
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return;
+        }
 
         Storage::disk('public')->delete($path);
     }
@@ -161,7 +164,7 @@ class ProfileController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'role' => $user->role?->value,,
+            'role' => $user->role?->value,
             'google_id' => $user->google_id,
             'avatar' => $user->avatar,
             'username_changed_at' => $user->username_changed_at,
@@ -209,7 +212,7 @@ class ProfileController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role?->value,,
+                'role' => $user->role?->value,
                 'google_id' => $user->google_id,
                 'avatar' => $user->avatar,
             ],
