@@ -13,7 +13,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
@@ -64,7 +64,7 @@ class User extends Authenticatable implements MustVerifyEmail
     // Keep these notifications
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new CustomVerifyEmail());
+        $this->notify(new CustomVerifyEmail);
     }
 
     public function sendPasswordResetNotification($token): void
