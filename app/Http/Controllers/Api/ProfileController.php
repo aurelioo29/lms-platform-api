@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
-
+use App\Services\ActivityLogger;
 class ProfileController extends Controller
 {
     // POST /api/auth/profile/avatar
@@ -29,6 +29,19 @@ class ProfileController extends Controller
         $user->avatar = $path;
         $user->save();
 
+        ActivityLogger::log(
+            userId: $user->id,
+            courseId: null,
+            eventType: 'profile_avatar_updated',
+            refType: 'user',
+            refId: $user->id,
+            meta: [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'path' => $path,
+            ]
+        );
+
         return response()->json([
             'message' => 'Avatar updated.',
             'user' => $this->userPayload($user),
@@ -43,6 +56,18 @@ class ProfileController extends Controller
         $user->name = $request->validated()['name'];
         $user->username_changed_at = now();
         $user->save();
+
+        ActivityLogger::log(
+            userId: $user->id,
+            courseId: null,
+            eventType: 'profile_username_updated',
+            refType: 'user',
+            refId: $user->id,
+            meta: [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]
+        );
 
         return response()->json([
             'message' => 'Display name updated.',
@@ -66,6 +91,20 @@ class ProfileController extends Controller
 
         $user->email = $email;
         $user->save();
+
+        ActivityLogger::log(
+            userId: $user->id,
+            courseId: null,
+            eventType: 'profile_email_updated',
+            refType: 'user',
+            refId: $user->id,
+            meta: [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'old_email' => $user->getOriginal('email'),
+                'new_email' => $email,
+            ]
+        );
 
         return response()->json([
             'message' => 'Email updated.',
@@ -91,6 +130,18 @@ class ProfileController extends Controller
         $user->setRememberToken(Str::random(60));
         $user->save();
 
+        ActivityLogger::log(
+            userId: $user->id,
+            courseId: null,
+            eventType: 'profile_password_updated',
+            refType: 'user',
+            refId: $user->id,
+            meta: [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]
+        );
+
         return response()->json([
             'message' => 'Password updated.',
         ]);
@@ -110,7 +161,7 @@ class ProfileController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'role' => $user->role,
+            'role' => $user->role?->value,,
             'google_id' => $user->google_id,
             'avatar' => $user->avatar,
             'username_changed_at' => $user->username_changed_at,
@@ -140,13 +191,25 @@ class ProfileController extends Controller
         $user->avatar = null;
         $user->save();
 
+        ActivityLogger::log(
+            userId: $user->id,
+            courseId: null,
+            eventType: 'profile_avatar_removed',
+            refType: 'user',
+            refId: $user->id,
+            meta: [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]
+        );
+
         return response()->json([
             'message' => 'Avatar removed.',
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role,
+                'role' => $user->role?->value,,
                 'google_id' => $user->google_id,
                 'avatar' => $user->avatar,
             ],

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Dev\ActivityLogController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\PasswordController;
 use App\Http\Controllers\Api\ProfileController;
@@ -40,3 +41,11 @@ Route::prefix('auth')->group(function () {
     Route::patch('/profile/email', [ProfileController::class, 'updateEmail']);
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword']);
 });
+
+// ✅ Developer-only area
+Route::prefix('dev')
+    ->middleware(['auth:sanctum', 'dev.only'])
+    ->group(function () {
+        Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+        Route::get('/activity-logs/{id}', [ActivityLogController::class, 'show']);
+    });

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\URL;
+use App\Services\ActivityLogger;
 
 class EmailVerificationController extends Controller
 {
@@ -26,6 +26,18 @@ class EmailVerificationController extends Controller
 
         $user->markEmailAsVerified();
         event(new Verified($user));
+
+        ActivityLogger::log(
+            userId: $user->id,
+            courseId: null,
+            eventType: 'email_verified',
+            refType: 'user',
+            refId: $user->id,
+            meta: [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]
+        );
 
         // FE bisa bikin page "/verify-success"
         return response()->json(['message' => 'Verifikasi email berhasil. Silakan login.'], 200);
@@ -53,6 +65,18 @@ class EmailVerificationController extends Controller
         }
 
         $user->sendEmailVerificationNotification();
+
+        ActivityLogger::log(
+            userId: $user->id,
+            courseId: null,
+            eventType: 'email_verification_resend',
+            refType: 'user',
+            refId: $user->id,
+            meta: [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]
+        );
 
         return response()->json([
             'message' => 'Link verifikasi sudah dikirim ulang. Cek inbox/spam.',

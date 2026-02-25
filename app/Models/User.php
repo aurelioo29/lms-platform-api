@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
+use App\Enums\UserRole;
 use App\Notifications\CustomResetPassword;
 use App\Notifications\CustomVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -14,7 +13,6 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
 
     protected $fillable = [
@@ -24,6 +22,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'google_id',
         'avatar',
+        'username_changed_at',
+        'email_verified_at',
     ];
 
     protected $hidden = [
@@ -31,20 +31,43 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
     ];
 
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'username_changed_at' => 'datetime',
+        'password' => 'hashed',
+        'role' => UserRole::class,
+    ];
+
+    // =========================
+    // Role helpers
+    // =========================
+    public function isStudent(): bool
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->role === UserRole::Student;
     }
 
-    public function sendEmailVerificationNotification()
+    public function isTeacher(): bool
+    {
+        return $this->role === UserRole::Teacher;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::Admin;
+    }
+
+    public function isDeveloper(): bool
+    {
+        return $this->role === UserRole::Developer;
+    }
+
+    // Keep these notifications
+    public function sendEmailVerificationNotification(): void
     {
         $this->notify(new CustomVerifyEmail());
     }
 
-    public function sendPasswordResetNotification($token)
+    public function sendPasswordResetNotification($token): void
     {
         $this->notify(new CustomResetPassword($token));
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
@@ -9,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Services\ActivityLogger;
 
 class AuthController extends Controller
 {
@@ -19,9 +21,21 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'role' => 'student',
+            'role' => UserRole::Student->value,
             'password' => Hash::make($validated['password']),
         ]);
+
+        ActivityLogger::log(
+            userId: $user->id,
+            courseId: null,
+            eventType: 'register',
+            refType: 'user',
+            refId: $user->id,
+            meta: [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]
+        );
 
         $user->sendEmailVerificationNotification();
 
@@ -51,13 +65,25 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
+        ActivityLogger::log(
+            userId: $user->id,
+            courseId: null,
+            eventType: 'login',
+            refType: 'user',
+            refId: $user->id,
+            meta: [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]
+        );
+
         return response()->json([
             'message' => 'Login berhasil.',
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role,
+                'role' => $user->role?->value,
                 'avatar' => $user->avatar,
             ],
         ]);
@@ -72,7 +98,7 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role,
+                'role' => $user->role?->value,
                 'google_id' => $user->google_id,
                 'avatar' => $user->avatar,
                 'username_changed_at' => $user->username_changed_at,
@@ -82,6 +108,20 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $user = $request->user();
+
+        ActivityLogger::log(
+            userId: $user?->id ?? 0,
+            courseId: null,
+            eventType: 'logout',
+            refType: 'user',
+            refId: $user?->id,
+            meta: [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]
+        );
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
