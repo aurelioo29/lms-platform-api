@@ -9,6 +9,8 @@ class CourseInstructor extends Model
 {
     use HasFactory;
 
+    protected $table = 'course_instructors';
+
     protected $fillable = [
         'course_id',
         'user_id',
@@ -20,6 +22,7 @@ class CourseInstructor extends Model
     protected $casts = [
         'assigned_at' => 'datetime',
     ];
+
 
     public function course()
     {

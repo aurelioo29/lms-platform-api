@@ -9,6 +9,10 @@ use App\Http\Controllers\Api\Discussion\ReactionController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\Lms\CourseController;
 use App\Http\Controllers\Api\Lms\CourseEnrollmentController;
+use App\Http\Controllers\Api\Lms\CourseInstructorController;
+use App\Http\Controllers\Api\Lms\CourseModuleController;
+use App\Http\Controllers\Api\Lms\LessonAssetController;
+use App\Http\Controllers\Api\Lms\LessonController;
 use App\Http\Controllers\Api\PasswordController;
 use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Http\Request;
@@ -88,7 +92,21 @@ Route::prefix('admin/courses')
         Route::patch('/{course}', [CourseController::class, 'update']);
         Route::post('/{course}/publish', [CourseController::class, 'publish']);
         Route::post('/{course}/archive', [CourseController::class, 'archive']);
-        Route::post('/{course}/manual-enroll', [CourseEnrollmentController::class, 'manualEnroll']);
+
+        // course modules
+        Route::get('/{course}/modules', [CourseModuleController::class, 'index']);
+        Route::post('/{course}/modules', [CourseModuleController::class, 'store']);
+        Route::patch('/modules/{module}', [CourseModuleController::class, 'update']);
+        Route::delete('/modules/{module}', [CourseModuleController::class, 'destroy']);
+
+        // course lessons
+        Route::post('/lessons', [LessonController::class, 'store']);
+        Route::put('/lessons/{lesson}', [LessonController::class, 'update']);
+        Route::delete('/lessons/{lesson}', [LessonController::class, 'destroy']);
+
+        // lesson assets
+        Route::post('/lesson-assets', [LessonAssetController::class, 'store']);
+        Route::delete('/lesson-assets/{lessonAsset}', [LessonAssetController::class, 'destroy']);
     });
 
 Route::middleware(['auth:sanctum', 'admin.dev'])
@@ -108,4 +126,10 @@ Route::middleware(['auth:sanctum', 'admin.dev'])
         Route::get('/students/{user}', [UserManagementController::class, 'showStudent']);
         Route::patch('/students/{user}', [UserManagementController::class, 'updateStudent']);
         Route::delete('/students/{user}', [UserManagementController::class, 'destroyStudent']);
+
+
+        // assign / manage course instructors
+        Route::post('/courses/{course}/instructors', [CourseInstructorController::class, 'store']);
+        Route::patch('/courses/instructors/{courseInstructor}', [CourseInstructorController::class, 'update']);
+        Route::delete('/courses/instructors/{courseInstructor}', [CourseInstructorController::class, 'destroy']);
     });

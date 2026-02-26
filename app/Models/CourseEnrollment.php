@@ -27,6 +27,7 @@ class CourseEnrollment extends Model
         'removed_at' => 'datetime',
     ];
 
+
     public function course()
     {
         return $this->belongsTo(Course::class);
