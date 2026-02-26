@@ -2,55 +2,54 @@
 
 namespace App\Http\Controllers\Api\Lms;
 
+use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Services\CourseEnrollmentService;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CourseEnrollmentController extends Controller
 {
-    protected  CourseEnrollmentService $enrollmentService;
+    public function __construct(protected CourseEnrollmentService $enrollmentService) {}
 
-    public function __construct(CourseEnrollmentService $enrollmentService)
-    {
-        $this->enrollmentService = $enrollmentService;
-    }
-
-
-    // student enroll course using enroll key
+    // student enroll via key
     public function enrollWithKey(Request $request, Course $course)
     {
-        $request->validate([
+        $validated = $request->validate([
             'enroll_key' => ['required', 'string'],
         ]);
 
-        $this->enrollmentService->enrollWithKey(
-            $course,
-            $request->enroll_key
-        );
+        $enrollment = $this->enrollmentService->enrollWithKey($course, $validated['enroll_key']);
 
-        return redirect()
-            ->back()
-            ->with('success', 'Berhasil mendaftar ke course.');
+        return response()->json([
+            'message' => 'Enrolled successfully.',
+            'data' => $enrollment,
+        ], 201);
     }
 
-
-    // manual enroll student by admin
+    // admin/teacher manual enroll student
     public function manualEnroll(Request $request, Course $course)
     {
-        $request->validate([
+        $user = Auth::user();
+
+        // adjust roles to your system if needed
+        if (! in_array($user->role, ['admin', 'teacher'], true)) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $validated = $request->validate([
             'student_id' => ['required', 'exists:users,id'],
         ]);
 
-        $this->enrollmentService->manualEnroll(
+        $enrollment = $this->enrollmentService->manualEnroll(
             $course,
-            $request->student_id,
-            Auth::id()
+            (int) $validated['student_id'],
+            (int) $user->id
         );
 
-        return redirect()
-            ->back()
-            ->with('success', 'Student berhasil didaftarkan ke course.');
+        return response()->json([
+            'message' => 'Student enrolled successfully.',
+            'data' => $enrollment,
+        ], 201);
     }
 }

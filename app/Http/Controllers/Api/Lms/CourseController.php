@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Lms;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Lms\Course\PublishCourseRequest;
 use App\Http\Requests\Lms\Course\StoreCourseRequest;
 use App\Http\Requests\Lms\Course\UpdateCourseRequest;
 use App\Models\Course;
@@ -11,24 +12,34 @@ use Illuminate\Http\Request;
 
 class CourseController extends Controller
 {
-    protected CourseService $courseService;
+    public function __construct(protected CourseService $courseService) {}
 
-    public function __construct(CourseService $courseService)
-    {
-        $this->courseService = $courseService;
-    }
-
-    // list publish courses (student)
+    // students: list published courses
     public function index()
     {
         return response()->json(
-            Course::where('status', 'published')
+            Course::query()
+                ->where('status', 'published')
                 ->latest()
                 ->get()
         );
     }
 
-    // create course (admin)
+    public function adminIndex(Request $request)
+    {
+        $q = $request->query('q');
+        $status = $request->query('status');
+
+        $courses = Course::query()
+            ->when($status, fn ($qq) => $qq->where('status', $status))
+            ->when($q, fn ($qq) => $qq->where('title', 'like', "%{$q}%"))
+            ->latest()
+            ->get();
+
+        return response()->json($courses);
+    }
+
+    // admin: create
     public function store(StoreCourseRequest $request)
     {
         $course = $this->courseService->create($request->validated());
@@ -36,26 +47,28 @@ class CourseController extends Controller
         return response()->json($course, 201);
     }
 
-    // update course
+    // admin: update
     public function update(UpdateCourseRequest $request, Course $course)
     {
+        $course = $this->courseService->update($course, $request->validated());
 
-        return response()->json($this->courseService->update($course, $request->validated()));
+        return response()->json($course);
     }
 
-    // publish course
-    public function publish(Request $request, Course $course)
+    // admin: publish
+    public function publish(PublishCourseRequest $request, Course $course)
     {
-        return response()->json(
-            $this->courseService->publish($course, $request->validated()['enroll_key'] ?? null)
+        $course = $this->courseService->publish(
+            $course,
+            $request->validated()['enroll_key'] ?? null
         );
+
+        return response()->json($course);
     }
 
-    // archive course
+    // admin: archive
     public function archive(Course $course)
     {
-        return response()->json(
-            $this->courseService->archive($course)
-        );
+        return response()->json($this->courseService->archive($course));
     }
 }

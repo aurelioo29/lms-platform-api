@@ -3,6 +3,9 @@
 use App\Http\Controllers\Api\Admin\UserManagementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Dev\ActivityLogController;
+use App\Http\Controllers\Api\Discussion\CourseDiscussionController;
+use App\Http\Controllers\Api\Discussion\DiscussionCommentController;
+use App\Http\Controllers\Api\Discussion\ReactionController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\Lms\CourseController;
 use App\Http\Controllers\Api\Lms\CourseEnrollmentController;
@@ -47,6 +50,22 @@ Route::prefix('auth')->group(function () {
     Route::patch('/profile/username', [ProfileController::class, 'updateUsername']);
     Route::patch('/profile/email', [ProfileController::class, 'updateEmail']);
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword']);
+
+    // discussions list/create per course
+    Route::get('/courses/{course}/discussions', [CourseDiscussionController::class, 'index']);
+    Route::post('/courses/{course}/discussions', [CourseDiscussionController::class, 'store']);
+
+    // single discussion
+    Route::get('/discussions/{discussion}', [CourseDiscussionController::class, 'show']);
+    Route::patch('/discussions/{discussion}', [CourseDiscussionController::class, 'update']);
+    Route::delete('/discussions/{discussion}', [CourseDiscussionController::class, 'destroy']);
+
+    // comments
+    Route::post('/discussions/{discussion}/comments', [DiscussionCommentController::class, 'store']);
+    Route::delete('/comments/{comment}', [DiscussionCommentController::class, 'destroy']);
+
+    // reactions
+    Route::post('/reactions/toggle', [ReactionController::class, 'toggle']);
 });
 
 Route::middleware(['auth:sanctum', 'dev.only'])
@@ -56,23 +75,19 @@ Route::middleware(['auth:sanctum', 'dev.only'])
         Route::get('/activity-logs/{id}', [ActivityLogController::class, 'show']);
     });
 
-/*
-|--------------------------------------------------------------------------
-| LMS - COURSE ENROLLMENT
-|--------------------------------------------------------------------------
-*/
+// Public-ish (authenticated + verified): list published courses + enroll via key
 Route::prefix('courses')
     ->middleware(['auth:sanctum', 'verified'])
     ->group(function () {
-
-        // student enroll via enroll key
-        Route::post('/{course}/enroll', [CourseEnrollmentController::class, 'enrollWithKey']);
-
-        // admin / teacher manual enroll student
-        Route::post('/{course}/manual-enroll', [CourseEnrollmentController::class, 'manualEnroll']);
-
-        // course management (admin)
         Route::get('/', [CourseController::class, 'index']);
+        Route::post('/{course}/enroll', [CourseEnrollmentController::class, 'enrollWithKey']);
+    });
+
+// Admin (or admin middleware): manage courses + manual enroll
+Route::prefix('admin/courses')
+    ->middleware(['auth:sanctum', 'verified', 'admin.dev']) // or your admin middleware
+    ->group(function () {
+        Route::get('/', [CourseController::class, 'adminIndex']);
         Route::post('/', [CourseController::class, 'store']);
         Route::patch('/{course}', [CourseController::class, 'update']);
         Route::post('/{course}/publish', [CourseController::class, 'publish']);
