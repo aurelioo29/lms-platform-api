@@ -10,7 +10,7 @@ class CourseEnrollment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'corse_id',
+        'course_id',
         'user_id',
         'method',
         'status',
@@ -22,9 +22,9 @@ class CourseEnrollment extends Model
     ];
 
     protected $casts = [
-        'enrolled_at'       => 'datetime',
-        'last_accessed_at'  => 'datetime',
-        'removed_at'        => 'datetime',
+        'enrolled_at' => 'datetime',
+        'last_accessed_at' => 'datetime',
+        'removed_at' => 'datetime',
     ];
 
 
