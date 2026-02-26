@@ -22,8 +22,11 @@ class StoreCourseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['required', 'string', 'min:3'],
             'description' => ['nullable', 'string'],
+            'status' => ['required', 'in:draft,published,archived'],
+            'enroll_key' => ['nullable', 'string', 'min:4'],
+            'auto_generate_key' => ['nullable', 'boolean'],
         ];
     }
 }

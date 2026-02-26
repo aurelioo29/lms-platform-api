@@ -10,14 +10,8 @@ class Course extends Model
     use HasFactory;
 
     protected $fillable = [
-
-        'title',
-        'slug',
-        'description',
-        'status',
-        'enroll_key_hash',
-        'published_at',
-        'created_by',
+        'title', 'slug', 'description', 'status', 'created_by', 'published_at',
+        'enroll_key_hash', 'enroll_key_enc', 'enroll_key_plain',
     ];
 
     protected $casts = [

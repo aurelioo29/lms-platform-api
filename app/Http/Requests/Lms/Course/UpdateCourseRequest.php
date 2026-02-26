@@ -22,8 +22,11 @@ class UpdateCourseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['sometimes', 'string', 'max:255'],
+            'title' => ['sometimes', 'string', 'min:3'],
             'description' => ['nullable', 'string'],
+            'status' => ['sometimes', 'in:draft,published,archived'],
+            'enroll_key' => ['nullable', 'string', 'min:4'],
+            'auto_generate_key' => ['nullable', 'boolean'],
         ];
     }
 }

@@ -39,20 +39,24 @@ class CourseController extends Controller
         return response()->json($courses);
     }
 
-    // admin: create
     public function store(StoreCourseRequest $request)
     {
-        $course = $this->courseService->create($request->validated());
+        $result = $this->courseService->create($request->validated());
 
-        return response()->json($course, 201);
+        return response()->json([
+            'data' => $result['course'],
+            'enroll_key' => $result['enroll_key'], 
+        ], 201);
     }
 
-    // admin: update
     public function update(UpdateCourseRequest $request, Course $course)
     {
-        $course = $this->courseService->update($course, $request->validated());
+        $result = $this->courseService->update($course, $request->validated());
 
-        return response()->json($course);
+        return response()->json([
+            'data' => $result['course'],
+            'enroll_key' => $result['enroll_key'],
+        ]);
     }
 
     // admin: publish
