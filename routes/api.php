@@ -50,23 +50,13 @@ Route::prefix('auth')->group(function () {
     Route::patch('/profile/username', [ProfileController::class, 'updateUsername']);
     Route::patch('/profile/email', [ProfileController::class, 'updateEmail']);
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword']);
-
-    // discussions list/create per course
-    Route::get('/courses/{course}/discussions', [CourseDiscussionController::class, 'index']);
-    Route::post('/courses/{course}/discussions', [CourseDiscussionController::class, 'store']);
-
-    // single discussion
-    Route::get('/discussions/{discussion}', [CourseDiscussionController::class, 'show']);
-    Route::patch('/discussions/{discussion}', [CourseDiscussionController::class, 'update']);
-    Route::delete('/discussions/{discussion}', [CourseDiscussionController::class, 'destroy']);
-
-    // comments
-    Route::post('/discussions/{discussion}/comments', [DiscussionCommentController::class, 'store']);
-    Route::delete('/comments/{comment}', [DiscussionCommentController::class, 'destroy']);
-
-    // reactions
-    Route::post('/reactions/toggle', [ReactionController::class, 'toggle']);
 });
+
+Route::middleware(['auth:sanctum', 'verified', 'admin.teacher.dev'])
+    ->prefix('admin')
+    ->group(function () {
+        Route::patch('/discussions/{discussion}/status', [CourseDiscussionController::class, 'setStatus']);
+    });
 
 Route::middleware(['auth:sanctum', 'dev.only'])
     ->prefix('dev')
@@ -75,12 +65,29 @@ Route::middleware(['auth:sanctum', 'dev.only'])
         Route::get('/activity-logs/{id}', [ActivityLogController::class, 'show']);
     });
 
+// single discussion + comments juga sebaiknya di luar auth group
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    Route::get('/discussions/{discussion}', [CourseDiscussionController::class, 'show']);
+    Route::patch('/discussions/{discussion}', [CourseDiscussionController::class, 'update']);
+    Route::delete('/discussions/{discussion}', [CourseDiscussionController::class, 'destroy']);
+
+    Route::post('/discussions/{discussion}/comments', [DiscussionCommentController::class, 'store']);
+    Route::delete('/comments/{comment}', [DiscussionCommentController::class, 'destroy']);
+
+    Route::post('/reactions/toggle', [ReactionController::class, 'toggle']);
+});
+
 // Public-ish (authenticated + verified): list published courses + enroll via key
 Route::prefix('courses')
     ->middleware(['auth:sanctum', 'verified'])
     ->group(function () {
         Route::get('/', [CourseController::class, 'index']);
+        Route::get('/slug/{slug}', [CourseController::class, 'showBySlug']);
         Route::post('/{course}/enroll', [CourseEnrollmentController::class, 'enrollWithKey']);
+
+        // discussions list/create per course
+        Route::get('/{course}/discussions', [CourseDiscussionController::class, 'index']);
+        Route::post('/{course}/discussions', [CourseDiscussionController::class, 'store']);
     });
 
 // Admin (or admin middleware): manage courses + manual enroll
@@ -126,7 +133,6 @@ Route::middleware(['auth:sanctum', 'admin.dev'])
         Route::get('/students/{user}', [UserManagementController::class, 'showStudent']);
         Route::patch('/students/{user}', [UserManagementController::class, 'updateStudent']);
         Route::delete('/students/{user}', [UserManagementController::class, 'destroyStudent']);
-
 
         // assign / manage course instructors
         Route::post('/courses/{course}/instructors', [CourseInstructorController::class, 'store']);
