@@ -7,6 +7,7 @@ use App\Http\Requests\Lms\LessonAsset\StoreLessonAssetRequest;
 use App\Models\LessonAsset;
 use App\Services\LessonAssetService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LessonAssetController extends Controller
 {
@@ -21,7 +22,7 @@ class LessonAssetController extends Controller
         $this->authorize('create', $asset);
 
         return response()->json(
-            $this->service->store($request->validated(), auth()->id()),
+            $this->service->store($request->validated(), Auth::id()),
             201
         );
     }
