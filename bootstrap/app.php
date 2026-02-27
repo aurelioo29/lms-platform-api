@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'dev.only' => EnsureDeveloper::class,
             'admin.dev' => EnsureAdminOrDeveloper::class,
+            'admin.teacher.dev' => \App\Http\Middleware\EnsureAdminOrTeacherOrDeveloper::class,
         ]);
 
         $middleware->group('api', [

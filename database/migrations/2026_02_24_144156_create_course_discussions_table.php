@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->timestamps();
 
             $table->index(['course_id', 'status']);
+            $table->index(['course_id', 'user_id', 'created_at']);
         });
     }
 
