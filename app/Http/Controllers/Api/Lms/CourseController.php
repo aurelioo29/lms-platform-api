@@ -45,7 +45,7 @@ class CourseController extends Controller
 
         return response()->json([
             'data' => $result['course'],
-            'enroll_key' => $result['enroll_key'], 
+            'enroll_key' => $result['enroll_key'],
         ], 201);
     }
 
@@ -74,5 +74,19 @@ class CourseController extends Controller
     public function archive(Course $course)
     {
         return response()->json($this->courseService->archive($course));
+    }
+
+    public function showBySlug(string $slug)
+    {
+        $course = Course::query()
+            ->where('slug', $slug)
+            ->where('status', 'published') // students only see published
+            ->first();
+
+        if (! $course) {
+            return response()->json(['message' => 'Course not found'], 404);
+        }
+
+        return response()->json($course);
     }
 }

@@ -152,4 +152,39 @@ class CourseService
 
         return $out;
     }
+
+    public function archive(Course $course): Course
+    {
+        return DB::transaction(function () use ($course) {
+            $userId = (int) Auth::id();
+
+            $before = [
+                'status' => $course->status,
+                'published_at' => $course->published_at,
+            ];
+
+            $course->status = 'archived';
+            $course->published_at = null; // optional: archived berarti tidak published
+            $course->save();
+
+            $after = [
+                'status' => $course->status,
+                'published_at' => $course->published_at,
+            ];
+
+            ActivityLogger::log(
+                userId: $userId,
+                courseId: (int) $course->id,
+                eventType: 'course.archived',
+                refType: Course::class,
+                refId: (int) $course->id,
+                meta: [
+                    'before' => $before,
+                    'after' => $after,
+                ]
+            );
+
+            return $course;
+        });
+    }
 }

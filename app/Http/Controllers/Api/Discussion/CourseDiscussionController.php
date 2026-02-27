@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Discussion\StoreDiscussionRequest;
 use App\Models\Course;
 use App\Models\CourseDiscussion;
+use App\Models\Reaction;
 use Illuminate\Http\Request;
 
 class CourseDiscussionController extends Controller
@@ -75,23 +76,31 @@ class CourseDiscussionController extends Controller
     }
 
     // GET /api/discussions/{discussion}
-    public function show(Request $request, CourseDiscussion $discussion)
+    public function show(CourseDiscussion $discussion, Request $request)
     {
-        $user = $request->user();
-        $isStaff = $user && in_array($user->role?->value, ['teacher', 'admin', 'developer'], true);
+        $userId = $request->user()->id;
 
-        if ($discussion->status === 'hidden' && ! $isStaff) {
-            return response()->json(['message' => 'Not found'], 404);
-        }
+        $likesCount = Reaction::query()
+            ->where('reaction', 'like')
+            ->where('reactable_type', CourseDiscussion::class)
+            ->where('reactable_id', $discussion->id)
+            ->count();
 
-        $discussion->load([
-            'user:id,name',
-            'reactions',
-            'comments.user:id,name',
-            'comments.reactions',
+        $liked = Reaction::query()
+            ->where('user_id', $userId)
+            ->where('reaction', 'like')
+            ->where('reactable_type', CourseDiscussion::class)
+            ->where('reactable_id', $discussion->id)
+            ->exists();
+
+        // Make sure you also load user/comments as you already do
+        return response()->json([
+            'data' => [
+                ...$discussion->toArray(),
+                'likes_count' => $likesCount,
+                'liked' => $liked,
+            ],
         ]);
-
-        return response()->json(['data' => $discussion]);
     }
 
     // PATCH /api/discussions/{discussion}  (edit title/body) (author or staff)
