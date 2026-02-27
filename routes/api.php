@@ -10,8 +10,16 @@ use App\Http\Controllers\Api\Lms\CourseController;
 use App\Http\Controllers\Api\Lms\CourseEnrollmentController;
 use App\Http\Controllers\Api\Lms\CourseInstructorController;
 use App\Http\Controllers\Api\Lms\CourseModuleController;
+use App\Http\Controllers\Api\Lms\CourseProgressSummaryController;
 use App\Http\Controllers\Api\Lms\LessonAssetController;
 use App\Http\Controllers\Api\Lms\LessonController;
+use App\Http\Controllers\Api\Lms\LessonProgressController;
+use App\Http\Controllers\Api\Lms\QuizAnswerController;
+use App\Http\Controllers\Api\Lms\QuizAttemptController;
+use App\Http\Controllers\Api\Lms\QuizController;
+use App\Http\Controllers\Api\Lms\QuizMatchingPairController;
+use App\Http\Controllers\Api\Lms\QuizQuestionController;
+use App\Http\Controllers\Api\Lms\QuizQuestionOptionController;
 use App\Http\Controllers\Api\PasswordController;
 use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Http\Request;
@@ -113,6 +121,51 @@ Route::prefix('admin/courses')
         // lesson assets
         Route::post('/lesson-assets', [LessonAssetController::class, 'store']);
         Route::delete('/lesson-assets/{lessonAsset}', [LessonAssetController::class, 'destroy']);
+
+        // lesson progress
+        Route::post('/{lesson}/start', [LessonProgressController::class, 'start']);
+        Route::post('/{lesson}/complete', [LessonProgressController::class, 'complete']);
+
+        // course progress summary
+        Route::get('/{course}/progress', [CourseProgressSummaryController::class, 'show']);
+
+        // quizzes
+        Route::post('/{course}/quizzes', [QuizController::class, 'store']);
+        Route::put('/quizzes/{quiz}', [QuizController::class, 'update']);
+        Route::delete('/quizzes/{quiz}', [QuizController::class, 'destroy']);
+
+        // quiz questions
+        Route::get('/quizzes/{quiz}/questions', [QuizQuestionController::class, 'index']);
+        Route::post('/quizzes/{quiz}/questions', [QuizQuestionController::class, 'store']);
+        Route::put('/quiz-questions/{quizQuestion}', [QuizQuestionController::class, 'update']);
+        Route::delete('/quiz-questions/{quizQuestion}', [QuizQuestionController::class, 'destroy']);
+
+        // question options
+        Route::get('/quiz-questions/{question}/options', [QuizQuestionOptionController::class, 'index']);
+        Route::post('/quiz-questions/{question}/options', [QuizQuestionOptionController::class, 'store']);
+        Route::put('/quiz-question-options/{option}', [QuizQuestionOptionController::class, 'update']);
+        Route::delete('/quiz-question-options/{option}', [QuizQuestionOptionController::class, 'destroy']);
+
+        // matching pairs
+        Route::get('{question}/matching-pairs', [QuizMatchingPairController::class, 'index']);
+        Route::post('{question}/matching-pairs', [QuizMatchingPairController::class, 'store']);
+        Route::patch('matching-pairs/{pair}', [QuizMatchingPairController::class, 'update']);
+        Route::delete('matching-pairs/{pair}', [QuizMatchingPairController::class, 'destroy']);
+
+        // quiz attempts
+        Route::prefix('quizzes')->group(function () {
+            Route::get('{quiz}/attempts', [QuizAttemptController::class, 'index']);
+            Route::post('{quiz}/attempts/start', [QuizAttemptController::class, 'start']);
+            Route::post('attempts/{attempt}/submit', [QuizAttemptController::class, 'submit']);
+        });
+
+        Route::prefix('quiz-attempts')->group(function () {
+            Route::post('{attempt}/questions/{question}/answer', [QuizAnswerController::class, 'save']);
+        });
+
+        Route::prefix('quiz-answers')->group(function () {
+            Route::post('{answer}/grade', [QuizAnswerController::class, 'grade']);
+        });
     });
 
 Route::middleware(['auth:sanctum', 'admin.dev'])
