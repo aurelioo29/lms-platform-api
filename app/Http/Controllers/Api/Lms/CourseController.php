@@ -17,12 +17,19 @@ class CourseController extends Controller
     public function index(Request $request)
     {
         $q = trim((string) $request->get('q', ''));
+        $userId = (int) $request->user()->id;
 
         $courses = \App\Models\Course::query()
             ->where('status', 'published')
             ->when($q !== '', fn ($qq) => $qq->where('title', 'like', "%{$q}%"))
             ->with([
                 'courseInstructors.instructor:id,name', // ✅ penting
+            ])
+            ->withExists([
+                // hasilnya akan jadi boolean: is_enrolled (0/1)
+                'enrollments as is_enrolled' => fn ($en) => $en
+                    ->where('user_id', $userId)
+                    ->where('status', 'active'),
             ])
             ->orderByDesc('id')
             ->get();
