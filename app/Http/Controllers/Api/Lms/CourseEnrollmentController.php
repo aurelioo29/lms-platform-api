@@ -32,8 +32,9 @@ class CourseEnrollmentController extends Controller
     {
         $user = Auth::user();
 
-        // adjust roles to your system if needed
-        if (! in_array($user->role, ['admin', 'teacher'], true)) {
+        $role = is_object($user->role) ? $user->role->value : (string) $user->role;
+
+        if (! in_array($role, ['admin', 'teacher', 'developer'], true)) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
