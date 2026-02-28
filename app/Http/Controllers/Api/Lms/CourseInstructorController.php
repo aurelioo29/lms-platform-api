@@ -8,46 +8,90 @@ use App\Http\Requests\Lms\CourseInstructor\UpdateCourseInstructorRequest;
 use App\Models\Course;
 use App\Models\CourseInstructor;
 use App\Services\CourseInstructorService;
+use Illuminate\Support\Facades\Auth;
 
 class CourseInstructorController extends Controller
 {
-    protected CourseInstructorService $service;
+    public function __construct(protected CourseInstructorService $service) {}
 
-    public function __construct(CourseInstructorService $service)
+    private function actorRoleValue(): ?string
     {
-        $this->service = $service;
+        $actor = Auth::user();
+        if (! $actor) {
+            return null;
+        }
+
+        return is_object($actor->role) ? $actor->role->value : (string) $actor->role;
     }
 
-    // Assign instructor to course
+    private function ensureAllowedActor(): ?\Illuminate\Http\JsonResponse
+    {
+        $role = $this->actorRoleValue();
+        if (! $role) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        // ✅ IMPORTANT: use 'developer' not 'dev'
+        if (! in_array($role, ['admin', 'developer', 'teacher'], true)) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        return null;
+    }
+
     public function store(StoreCourseInstructorRequest $request, Course $course)
     {
+        if ($resp = $this->ensureAllowedActor()) {
+            return $resp;
+        }
+
+        $actor = Auth::user();
+
         $instructor = $this->service->assign(
-            $course,
-            $request->validated()['user_id']
+            course: $course,
+            instructorUserId: (int) $request->validated()['user_id'],
+            actorUserId: (int) $actor->id,
+            role: $request->validated()['role'] ?? 'main'
         );
-
-        return response()->json($instructor, 201);
-    }
-
-
-    // Update instructor status
-    public function update(UpdateCourseInstructorRequest $request, CourseInstructor $courseInstructor)
-    {
-        return response()->json(
-            $this->service->updateStatus(
-                $courseInstructor,
-                $request->validated()['status']
-            )
-        );
-    }
-
-    // Remove instructor from course
-    public function destroy(CourseInstructor $courseInstructor)
-    {
-        $this->service->remove($courseInstructor);
 
         return response()->json([
-            'message' => 'Instructor removed successfully',
+            'message' => 'Instructor assigned.',
+            'data' => $instructor->load('instructor'),
+        ], 201);
+    }
+
+    public function update(UpdateCourseInstructorRequest $request, CourseInstructor $courseInstructor)
+    {
+        if ($resp = $this->ensureAllowedActor()) {
+            return $resp;
+        }
+
+        $actor = Auth::user();
+
+        $updated = $this->service->update(
+            courseInstructor: $courseInstructor,
+            data: $request->validated(),
+            actorUserId: (int) $actor->id
+        );
+
+        return response()->json([
+            'message' => 'Instructor updated.',
+            'data' => $updated->load('instructor'),
+        ]);
+    }
+
+    public function destroy(CourseInstructor $courseInstructor)
+    {
+        if ($resp = $this->ensureAllowedActor()) {
+            return $resp;
+        }
+
+        $actor = Auth::user();
+
+        $this->service->deactivate($courseInstructor, (int) $actor->id);
+
+        return response()->json([
+            'message' => 'Instructor removed (inactive).',
         ]);
     }
 }

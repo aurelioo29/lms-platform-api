@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Dev\ActivityLogController;
 use App\Http\Controllers\Api\Discussion\CourseDiscussionController;
 use App\Http\Controllers\Api\Discussion\DiscussionCommentController;
+use App\Http\Controllers\Api\Discussion\ReactionController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\Lms\CourseController;
 use App\Http\Controllers\Api\Lms\CourseEnrollmentController;
@@ -168,7 +169,7 @@ Route::prefix('admin/courses')
         });
     });
 
-Route::middleware(['auth:sanctum', 'admin.dev'])
+Route::middleware(['auth:sanctum'])
     ->prefix('admin')
     ->group(function () {
 

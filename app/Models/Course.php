@@ -18,6 +18,8 @@ class Course extends Model
         'published_at' => 'datetime',
     ];
 
+    protected $appends = ['courseInstructors'];
+
     // admin Creator
     public function creator()
     {
@@ -37,8 +39,14 @@ class Course extends Model
             ->withTimestamps();
     }
 
-    public function instructors()
+    public function courseInstructors()
     {
-        return $this->hasMany(CourseInstructor::class);
+        return $this->hasMany(\App\Models\CourseInstructor::class);
+    }
+
+    public function getCourseInstructorsAttribute()
+    {
+        // Pastikan relation snake_case sudah diload dulu
+        return $this->course_instructors ?? $this->courseInstructors()->with('instructor:id,name')->get();
     }
 }

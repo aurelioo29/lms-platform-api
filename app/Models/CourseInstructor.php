@@ -9,20 +9,12 @@ class CourseInstructor extends Model
 {
     use HasFactory;
 
-    protected $table = 'course_instructors';
-
     protected $fillable = [
         'course_id',
         'user_id',
-        'status',
+        'role',
         'assigned_by',
-        'assigned_at',
     ];
-
-    protected $casts = [
-        'assigned_at' => 'datetime',
-    ];
-
 
     public function course()
     {
@@ -31,10 +23,11 @@ class CourseInstructor extends Model
 
     public function instructor()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
     }
 
-    public function assignedBy()
+    // who assigned this instructor
+    public function assigner()
     {
         return $this->belongsTo(User::class, 'assigned_by');
     }

@@ -14,15 +14,20 @@ class CourseController extends Controller
 {
     public function __construct(protected CourseService $courseService) {}
 
-    // students: list published courses
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(
-            Course::query()
-                ->where('status', 'published')
-                ->latest()
-                ->get()
-        );
+        $q = trim((string) $request->get('q', ''));
+
+        $courses = \App\Models\Course::query()
+            ->where('status', 'published')
+            ->when($q !== '', fn ($qq) => $qq->where('title', 'like', "%{$q}%"))
+            ->with([
+                'courseInstructors.instructor:id,name', // ✅ penting
+            ])
+            ->orderByDesc('id')
+            ->get();
+
+        return response()->json($courses);
     }
 
     public function adminIndex(Request $request)
@@ -33,6 +38,9 @@ class CourseController extends Controller
         $courses = Course::query()
             ->when($status, fn ($qq) => $qq->where('status', $status))
             ->when($q, fn ($qq) => $qq->where('title', 'like', "%{$q}%"))
+            ->with([
+                'courseInstructors.instructor:id,name',
+            ])
             ->latest()
             ->get();
 
@@ -80,7 +88,8 @@ class CourseController extends Controller
     {
         $course = Course::query()
             ->where('slug', $slug)
-            ->where('status', 'published') // students only see published
+            ->where('status', 'published')
+            ->with(['courseInstructors.instructor:id,name']) // ✅ add this
             ->first();
 
         if (! $course) {
