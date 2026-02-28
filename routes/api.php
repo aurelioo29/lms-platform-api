@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AdminDiscussionController;
 use App\Http\Controllers\Api\Admin\UserManagementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Dev\ActivityLogController;
@@ -64,6 +65,9 @@ Route::middleware(['auth:sanctum', 'verified', 'admin.teacher.dev'])
     ->prefix('admin')
     ->group(function () {
         Route::patch('/discussions/{discussion}/status', [CourseDiscussionController::class, 'setStatus']);
+
+        Route::get('/discussions', [AdminDiscussionController::class, 'index']);
+        Route::patch('/discussions/{discussion}/toggle-lock', [AdminDiscussionController::class, 'toggleLock']);
     });
 
 Route::middleware(['auth:sanctum', 'dev.only'])

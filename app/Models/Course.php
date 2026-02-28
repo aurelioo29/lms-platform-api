@@ -41,12 +41,17 @@ class Course extends Model
 
     public function courseInstructors()
     {
-        return $this->hasMany(\App\Models\CourseInstructor::class);
+        return $this->hasMany(CourseInstructor::class);
     }
 
     public function getCourseInstructorsAttribute()
     {
         // Pastikan relation snake_case sudah diload dulu
         return $this->course_instructors ?? $this->courseInstructors()->with('instructor:id,name')->get();
+    }
+
+    public function discussions()
+    {
+        return $this->hasMany(CourseDiscussion::class);
     }
 }
