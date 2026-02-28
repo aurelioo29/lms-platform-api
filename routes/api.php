@@ -103,6 +103,8 @@ Route::prefix('courses')
         Route::post('/{course}/discussions', [CourseDiscussionController::class, 'store']);
 
         Route::get('/my/courses', [MyCourseController::class, 'index']);
+        Route::get('/{course}/participants', [MyCourseController::class, 'participants']);
+        Route::post('/{course}/touch', [MyCourseController::class, 'touch']);
     });
 
 // Admin (or admin middleware): manage courses + manual enroll
