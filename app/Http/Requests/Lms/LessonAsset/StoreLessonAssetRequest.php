@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Lms\LessonAsset;
 
+use App\Models\LessonAsset;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreLessonAssetRequest extends FormRequest
 {
@@ -23,10 +25,37 @@ class StoreLessonAssetRequest extends FormRequest
     {
         return [
             'lesson_id' => ['required', 'exists:lessons,id'],
-            'type' => ['required', 'in:pdf,video_embed,video_upload,image,file'],
+
+            'type' => [
+                'required',
+                Rule::in([
+                    LessonAsset::TYPE_PDF,
+                    LessonAsset::TYPE_VIDEO_EMBED,
+                    LessonAsset::TYPE_VIDEO_UPLOAD,
+                    LessonAsset::TYPE_IMAGE,
+                    LessonAsset::TYPE_FILE,
+                ]),
+            ],
+
             'title' => ['nullable', 'string', 'max:255'],
-            'url' => ['nullable', 'url'],
-            'file' => ['nullable', 'file', 'max:51200'], // 50MB
+
+            // URL hanya wajib untuk embed
+            'url' => [
+                'nullable',
+                'url',
+                'required_if:type,' . LessonAsset::TYPE_VIDEO_EMBED,
+            ],
+
+            // File wajib untuk upload types
+            'file' => [
+                'nullable',
+                'file',
+                'max:51200',
+                'required_if:type,' . LessonAsset::TYPE_VIDEO_UPLOAD,
+                'required_if:type,' . LessonAsset::TYPE_PDF,
+                'required_if:type,' . LessonAsset::TYPE_IMAGE,
+                'required_if:type,' . LessonAsset::TYPE_FILE,
+            ],
         ];
     }
 }

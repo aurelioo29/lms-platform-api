@@ -8,6 +8,7 @@ use App\Http\Requests\Lms\Lesson\UpdateLessonRequest;
 use App\Models\Lesson;
 use App\Services\LessonService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LessonController extends Controller
 {
@@ -15,33 +16,30 @@ class LessonController extends Controller
 
     public function store(StoreLessonRequest $request)
     {
-        $lesson = new Lesson([
-            'module_id' => $request->module_id,
-        ]);
-
-        $this->authorize('create', $lesson);
-
-        return response()->json(
-            $this->service->store($request->validated(), auth()->id()),
-            201
+        $lesson = $this->service->store(
+            $request->validated(),
+            Auth::id()
         );
+
+        return response()->json($lesson, 201);
     }
 
     public function update(UpdateLessonRequest $request, Lesson $lesson)
     {
-        $this->authorize('update', $lesson);
-
-        return response()->json(
-            $this->service->update($lesson, $request->validated())
+        $lesson = $this->service->update(
+            $lesson,
+            $request->validated()
         );
+
+        return response()->json($lesson);
     }
 
     public function destroy(Lesson $lesson)
     {
-        $this->authorize('delete', $lesson);
-
         $this->service->delete($lesson);
 
-        return response()->json(['message' => 'Lesson deleted']);
+        return response()->json([
+            'message' => 'Lesson deleted'
+        ]);
     }
 }

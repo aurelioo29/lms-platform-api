@@ -16,7 +16,6 @@ class QuizController extends Controller
 
     public function store(StoreQuizRequest $request, Course $course)
     {
-        $this->authorize('create', [Quiz::class, $course]);
 
         $quiz = $this->service->create($course, $request->validated());
 
@@ -25,7 +24,7 @@ class QuizController extends Controller
 
     public function update(UpdateQuizRequest $request, Quiz $quiz)
     {
-        $this->authorize('update', $quiz);
+
 
         $quiz = $this->service->update($quiz, $request->validated());
 
@@ -34,7 +33,6 @@ class QuizController extends Controller
 
     public function destroy(Quiz $quiz)
     {
-        $this->authorize('delete', $quiz);
 
         $this->service->delete($quiz);
 

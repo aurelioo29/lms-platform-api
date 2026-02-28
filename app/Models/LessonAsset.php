@@ -9,6 +9,12 @@ class LessonAsset extends Model
 {
     use HasFactory;
 
+    public const TYPE_PDF = 'pdf';
+    public const TYPE_VIDEO_EMBED = 'video_embed';
+    public const TYPE_VIDEO_UPLOAD = 'video_upload';
+    public const TYPE_IMAGE = 'image';
+    public const TYPE_FILE = 'file';
+
     protected $fillable = [
         'lesson_id',
         'type',

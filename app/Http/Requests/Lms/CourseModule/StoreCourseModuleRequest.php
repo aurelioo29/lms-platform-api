@@ -11,8 +11,7 @@ class StoreCourseModuleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $course = $this->route('course');
-        return $this->user()->can('create', $course);
+        return true;
     }
 
     /**

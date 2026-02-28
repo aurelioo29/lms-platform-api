@@ -15,24 +15,20 @@ class LessonAssetController extends Controller
 
     public function store(StoreLessonAssetRequest $request)
     {
-        $asset = new LessonAsset([
-            'lesson_id' => $request->lesson_id,
-        ]);
-
-        $this->authorize('create', $asset);
-
-        return response()->json(
-            $this->service->store($request->validated(), Auth::id()),
-            201
+        $asset = $this->service->store(
+            $request->validated(),
+            Auth::id()
         );
+
+        return response()->json($asset, 201);
     }
 
     public function destroy(LessonAsset $lessonAsset)
     {
-        $this->authorize('delete', $lessonAsset);
-
         $this->service->delete($lessonAsset);
 
-        return response()->json(['message' => 'Asset deleted']);
+        return response()->json([
+            'message' => 'Asset deleted'
+        ]);
     }
 }

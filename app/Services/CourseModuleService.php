@@ -18,21 +18,18 @@ class CourseModuleService
     public function create(Course $course, array $data): CourseModule
     {
         return CourseModule::create([
+            ...$data,
             'course_id'  => $course->id,
-            'title'      => $data['title'],
-            'sort_order' => $data['sort_order'] ?? 1,
             'created_by' => Auth::id(),
+            'sort_order' => $data['sort_order'] ?? 1,
         ]);
     }
 
     public function update(CourseModule $module, array $data): CourseModule
     {
-        $module->update([
-            'title'      => $data['title'] ?? $module->title,
-            'sort_order' => $data['sort_order'] ?? $module->sort_order,
-        ]);
+        $module->update($data);
 
-        return $module;
+        return $module->refresh();
     }
 
     public function delete(CourseModule $module): void

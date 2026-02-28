@@ -11,8 +11,7 @@ class UpdateCourseModuleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $module = $this->route('module');
-        return $this->user()->can('update', $module);
+        return true;
     }
 
     /**

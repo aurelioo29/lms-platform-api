@@ -30,28 +30,33 @@ class CourseModuleController extends Controller
     // create module
     public function store(StoreCourseModuleRequest $request, Course $course)
     {
-        return response()->json(
-            $this->service->create($course, $request->validated()),
-            201
+        $module = $this->service->create(
+            $course,
+            $request->validated()
         );
+
+        return response()->json($module, 201);
     }
 
     // update module
     public function update(UpdateCourseModuleRequest $request, CourseModule $module)
     {
 
-        return response()->json(
-            $this->service->update($module, $request->validated())
+        $module = $this->service->update(
+            $module,
+            $request->validated()
         );
+
+        return response()->json($module);
     }
 
     // delete module
     public function destroy(CourseModule $module)
     {
-        $this->authorize('delete', $module);
-
         $this->service->delete($module);
 
-        return response()->json(['message' => 'Module deleted']);
+        return response()->json([
+            'message' => 'Module deleted'
+        ]);
     }
 }
