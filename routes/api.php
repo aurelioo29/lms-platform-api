@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\Lms\CourseProgressSummaryController;
 use App\Http\Controllers\Api\Lms\LessonAssetController;
 use App\Http\Controllers\Api\Lms\LessonController;
 use App\Http\Controllers\Api\Lms\LessonProgressController;
+use App\Http\Controllers\Api\Lms\MyCourseController;
 use App\Http\Controllers\Api\Lms\QuizAnswerController;
 use App\Http\Controllers\Api\Lms\QuizAttemptController;
 use App\Http\Controllers\Api\Lms\QuizController;
@@ -100,6 +101,8 @@ Route::prefix('courses')
         // discussions list/create per course
         Route::get('/{course}/discussions', [CourseDiscussionController::class, 'index']);
         Route::post('/{course}/discussions', [CourseDiscussionController::class, 'store']);
+
+        Route::get('/my/courses', [MyCourseController::class, 'index']);
     });
 
 // Admin (or admin middleware): manage courses + manual enroll
