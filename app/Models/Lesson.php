@@ -35,4 +35,9 @@ class Lesson extends Model
     {
         return $this->belongsTo(Lesson::class, 'unlock_after_lesson_id');
     }
+
+    public function assets()
+    {
+        return $this->hasMany(\App\Models\LessonAsset::class);
+    }
 }
