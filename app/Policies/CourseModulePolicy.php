@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Course;
 use App\Models\CourseInstructor;
 use App\Models\CourseModule;
@@ -9,27 +10,19 @@ use App\Models\User;
 
 class CourseModulePolicy
 {
-    /**
-     * Create a new policy instance.
-     */
-    public function __construct()
-    {
-        //
-    }
-
-    // Teacher can manage modules if they are active instructor of the course
     private function canManage(User $user, Course $course): bool
     {
-        // Admins can manage all modules - optional, depending on your app's needs
-        // if ($user->role === 'admin') {
-        //     return true;
-        // }
+        // Admin + Developer: full access
+        if (in_array($user->role, [UserRole::Admin, UserRole::Developer], true)) {
+            return true;
+        }
 
-        return $user->role === 'teacher'
+        // Teacher: must be active instructor
+        return $user->role === UserRole::Teacher
             && CourseInstructor::where('course_id', $course->id)
-            ->where('user_id', $user->id)
-            ->where('status', 'active')
-            ->exists();
+                ->where('user_id', $user->id)
+                ->where('status', 'active')
+                ->exists();
     }
 
     public function create(User $user, Course $course): bool

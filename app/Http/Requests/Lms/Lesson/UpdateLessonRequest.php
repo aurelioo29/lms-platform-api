@@ -24,7 +24,7 @@ class UpdateLessonRequest extends FormRequest
         return [
             'title' => ['sometimes', 'string', 'max:255'],
             'content_json' => ['nullable', 'array'],
-            'content_type' => ['sometimes', 'in:lesson,video,quiz'],
+            'content_type' => ['required', 'in:lesson,assignment,resource'],
             'sort_order' => ['sometimes', 'integer', 'min:1'],
             'published_at' => ['nullable', 'date'],
             'unlock_after_lesson_id' => ['nullable', 'exists:lessons,id'],

@@ -7,7 +7,6 @@ use App\Http\Requests\Lms\Lesson\StoreLessonRequest;
 use App\Http\Requests\Lms\Lesson\UpdateLessonRequest;
 use App\Models\Lesson;
 use App\Services\LessonService;
-use Illuminate\Http\Request;
 
 class LessonController extends Controller
 {
@@ -43,5 +42,12 @@ class LessonController extends Controller
         $this->service->delete($lesson);
 
         return response()->json(['message' => 'Lesson deleted']);
+    }
+
+    public function show(Lesson $lesson)
+    {
+        $this->authorize('view', $lesson);
+
+        return response()->json($lesson);
     }
 }

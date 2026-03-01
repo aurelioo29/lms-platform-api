@@ -25,7 +25,7 @@ class StoreLessonRequest extends FormRequest
             'module_id' => ['required', 'exists:course_modules,id'],
             'title' => ['required', 'string', 'max:255'],
             'content_json' => ['nullable', 'array'],
-            'content_type' => ['required', 'in:lesson,video,quiz'],
+            'content_type' => ['required', 'in:lesson,assignment,resource'],
             'sort_order' => ['nullable', 'integer', 'min:1'],
             'published_at' => ['nullable', 'date'],
             'unlock_after_lesson_id' => ['nullable', 'exists:lessons,id'],

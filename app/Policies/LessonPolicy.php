@@ -2,46 +2,50 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\CourseInstructor;
+use App\Models\CourseModule;
 use App\Models\Lesson;
 use App\Models\User;
 
 class LessonPolicy
 {
-    /**
-     * Create a new policy instance.
-     */
-    public function __construct()
+    private function canManageCourseId(User $user, int $courseId): bool
     {
-        //
-    }
+        if (in_array($user->role, [UserRole::Admin, UserRole::Developer], true)) {
+            return true;
+        }
 
-    private function canManage(User $user, Lesson $lesson): bool
-    {
-        // Jika suatu hari admin boleh, tinggal aktifkan
-        // if ($user->role === 'admin') {
-        //     return true;
-        // }
-
-        return $user->role === 'teacher'
-            && CourseInstructor::where('course_id', $lesson->module->course_id)
-            ->where('user_id', $user->id)
-            ->where('status', 'active')
-            ->exists();
+        return $user->role === UserRole::Teacher
+            && CourseInstructor::where('course_id', $courseId)
+                ->where('user_id', $user->id)
+                ->where('status', 'active')
+                ->exists();
     }
 
     public function create(User $user, Lesson $lesson): bool
     {
-        return $this->canManage($user, $lesson);
+        $courseId = CourseModule::where('id', $lesson->module_id)->value('course_id');
+        if (! $courseId) {
+            return false;
+        }
+
+        return $this->canManageCourseId($user, (int) $courseId);
     }
 
     public function update(User $user, Lesson $lesson): bool
     {
-        return $this->canManage($user, $lesson);
+        $lesson->loadMissing('module');
+        $courseId = $lesson->module?->course_id;
+        if (! $courseId) {
+            return false;
+        }
+
+        return $this->canManageCourseId($user, (int) $courseId);
     }
 
     public function delete(User $user, Lesson $lesson): bool
     {
-        return $this->canManage($user, $lesson);
+        return $this->update($user, $lesson);
     }
 }

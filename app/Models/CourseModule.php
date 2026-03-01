@@ -25,4 +25,9 @@ class CourseModule extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function lessons()
+    {
+        return $this->hasMany(Lesson::class, 'module_id')->orderBy('sort_order');
+    }
 }

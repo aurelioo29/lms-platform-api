@@ -105,11 +105,14 @@ Route::prefix('courses')
         Route::get('/my/courses', [MyCourseController::class, 'index']);
         Route::get('/{course}/participants', [MyCourseController::class, 'participants']);
         Route::post('/{course}/touch', [MyCourseController::class, 'touch']);
+
+        Route::get('/{course}/modules', [CourseModuleController::class, 'index']);
+        Route::get('/lessons/{lesson}', [LessonController::class, 'show']);
     });
 
 // Admin (or admin middleware): manage courses + manual enroll
 Route::prefix('admin/courses')
-    ->middleware(['auth:sanctum', 'verified', 'admin.dev']) // or your admin middleware
+    ->middleware(['auth:sanctum', 'verified']) // or your admin middleware
     ->group(function () {
         Route::get('/', [CourseController::class, 'adminIndex']);
         Route::post('/', [CourseController::class, 'store']);
