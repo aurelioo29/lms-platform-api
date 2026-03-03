@@ -56,11 +56,13 @@ Route::prefix('auth')->group(function () {
     Route::post('/reset-password', [PasswordController::class, 'reset']);
 
     // profile management
-    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
-    Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar']);
-    Route::patch('/profile/username', [ProfileController::class, 'updateUsername']);
-    Route::patch('/profile/email', [ProfileController::class, 'updateEmail']);
-    Route::patch('/profile/password', [ProfileController::class, 'updatePassword']);
+    Route::middleware(['auth:sanctum'])->group(function () {
+        Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar']);
+        Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar']);
+        Route::patch('/profile/username', [ProfileController::class, 'updateUsername']);
+        Route::patch('/profile/email', [ProfileController::class, 'updateEmail']);
+        Route::patch('/profile/password', [ProfileController::class, 'updatePassword']);
+    });
 });
 
 Route::middleware(['auth:sanctum', 'verified', 'admin.teacher.dev'])
