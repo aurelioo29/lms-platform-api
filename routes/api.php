@@ -39,11 +39,12 @@ Route::get('/ping', function () {
     ]);
 });
 
+Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
+
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
-    Route::get('/me', [AuthController::class, 'me'])->middleware('auth');
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 
     // email verification

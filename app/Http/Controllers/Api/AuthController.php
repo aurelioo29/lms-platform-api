@@ -7,10 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Services\ActivityLogger;
 
 class AuthController extends Controller
 {
@@ -50,18 +50,19 @@ class AuthController extends Controller
 
         $user = User::where('email', $validated['email'])->first();
 
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
+        if (! $user || ! Hash::check($validated['password'], $user->password)) {
             return response()->json(['message' => 'Email atau password salah.'], 401);
         }
 
-        if (!$user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedEmail()) {
             return response()->json([
                 'message' => 'Email belum diverifikasi.',
                 'code' => 'EMAIL_NOT_VERIFIED',
             ], 409);
         }
 
-        Auth::guard('web')->login($user);
+        // Auth::guard('web')->login($user);
+        $token = $user->createToken('web')->plainTextToken;
 
         $request->session()->regenerate();
 
@@ -79,6 +80,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login berhasil.',
+            'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
