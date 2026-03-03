@@ -39,14 +39,13 @@ Route::get('/ping', function () {
     ]);
 });
 
-Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
     // Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
+    Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
+    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
     // email verification
     Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->name('verification.verify');
