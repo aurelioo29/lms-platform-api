@@ -2,15 +2,26 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+// ✅ add these
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        // ✅ API Rate Limiter (needed if you use ThrottleRequests:api)
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by(
+                $request->user()?->id ?: $request->ip()
+            );
+        });
+
         /**
          * 1) Email Verification
          * Backend bikin signed URL asli (buat validasi signature),
@@ -26,8 +37,8 @@ class AppServiceProvider extends ServiceProvider
                 ]
             );
 
-            return rtrim(config('app.frontend_url'), '/') .
-                '/verify-email?verify_url=' . urlencode($backendUrl);
+            return rtrim(config('app.frontend_url'), '/').
+                '/verify-email?verify_url='.urlencode($backendUrl);
         });
 
         /**
