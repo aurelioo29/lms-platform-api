@@ -9,7 +9,6 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -61,22 +60,10 @@ class AuthController extends Controller
             ], 409);
         }
 
-        // Auth::guard('web')->login($user);
-        $token = $user->createToken('web')->plainTextToken;
+        // optional: hapus token lama biar 1 device 1 token
+        // $user->tokens()->delete();
 
-        $request->session()->regenerate();
-
-        ActivityLogger::log(
-            userId: $user->id,
-            courseId: null,
-            eventType: 'login',
-            refType: 'user',
-            refId: $user->id,
-            meta: [
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]
-        );
+        $token = $user->createToken('lms-ui')->plainTextToken;
 
         return response()->json([
             'message' => 'Login berhasil.',
@@ -112,6 +99,9 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
+        // Hapus token yang dipakai sekarang (logout 1 device)
+        $request->user()->currentAccessToken()?->delete();
+
         ActivityLogger::log(
             userId: $user?->id ?? 0,
             courseId: null,
@@ -123,11 +113,6 @@ class AuthController extends Controller
                 'user_agent' => $request->userAgent(),
             ]
         );
-
-        Auth::guard('web')->logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
 
         return response()->json(['message' => 'Logged out']);
     }
