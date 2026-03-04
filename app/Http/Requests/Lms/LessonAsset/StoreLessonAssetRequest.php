@@ -26,7 +26,7 @@ class StoreLessonAssetRequest extends FormRequest
             'type' => ['required', 'in:pdf,video_embed,video_upload,image,file'],
             'title' => ['nullable', 'string', 'max:255'],
             'url' => ['nullable', 'url'],
-            'file' => ['nullable', 'file', 'max:51200'], // 50MB
+            'file' => ['nullable', 'file', 'max:81920'], // 80MB
         ];
     }
 }
