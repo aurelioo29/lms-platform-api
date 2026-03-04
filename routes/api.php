@@ -111,6 +111,9 @@ Route::prefix('courses')
 
         Route::get('/{course}/modules', [CourseModuleController::class, 'index']);
         Route::get('/lessons/{lesson}', [LessonController::class, 'show']);
+        Route::get('/lessons/{lesson}/quiz', [QuizController::class, 'showByLesson']);
+
+        Route::post('/quizzes/{quiz}/attempts', [QuizAttemptController::class, 'storePublic']);
     });
 
 // Admin (or admin middleware): manage courses + manual enroll

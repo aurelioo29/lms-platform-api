@@ -63,6 +63,18 @@ class AuthController extends Controller
         // optional: hapus token lama biar 1 device 1 token
         // $user->tokens()->delete();
 
+        ActivityLogger::log(
+            userId: $user->id,
+            courseId: null,
+            eventType: 'login',
+            refType: 'user',
+            refId: $user->id,
+            meta: [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]
+        );
+
         $token = $user->createToken('lms-ui')->plainTextToken;
 
         return response()->json([

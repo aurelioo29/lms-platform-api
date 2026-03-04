@@ -13,10 +13,19 @@ class QuizQuestion extends Model
         'prompt_json',
         'points',
         'sort_order',
+
+        'media_type',
+        'media_url',
+        'media_path',
+        'media_meta',
+        'require_watch',
+        'min_watch_seconds',
     ];
 
     protected $casts = [
         'prompt_json' => 'array',
+        'media_meta' => 'array',
+        'require_watch' => 'boolean',
     ];
 
     public function quiz()

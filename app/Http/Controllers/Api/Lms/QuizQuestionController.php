@@ -8,7 +8,6 @@ use App\Http\Requests\Lms\QuizQuestion\UpdateQuizQuestionRequest;
 use App\Models\Quiz;
 use App\Models\QuizQuestion;
 use App\Services\QuizQuestionService;
-use Illuminate\Http\Request;
 
 class QuizQuestionController extends Controller
 {
@@ -31,7 +30,11 @@ class QuizQuestionController extends Controller
         $this->authorize('update', $quiz);
 
         return response()->json(
-            $this->service->create($quiz, $request->validated()),
+            $this->service->create(
+                $quiz,
+                $request->validated(),
+                $request->file('media_file') // ✅
+            ),
             201
         );
     }
@@ -41,7 +44,11 @@ class QuizQuestionController extends Controller
         $this->authorize('update', $quizQuestion->quiz);
 
         return response()->json(
-            $this->service->update($quizQuestion, $request->validated())
+            $this->service->update(
+                $quizQuestion,
+                $request->validated(),
+                $request->file('media_file') // ✅
+            )
         );
     }
 

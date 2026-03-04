@@ -21,6 +21,16 @@ class QuizAttemptController extends Controller
         );
     }
 
+    public function storePublic(Request $request, Quiz $quiz)
+    {
+        // optional: authorize view/attempt quiz
+        // $this->authorize('attempt', $quiz);
+
+        $attempt = $this->service->storePublic($quiz, $request->all());
+
+        return response()->json($attempt, 201);
+    }
+
     public function start(StartQuizAttemptRequest $request, Quiz $quiz)
     {
         return response()->json(
